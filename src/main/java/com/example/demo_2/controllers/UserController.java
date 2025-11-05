@@ -1,63 +1,62 @@
 package com.example.demo_2.controllers;
+
 import com.example.demo_2.entities.User;
+import com.example.demo_2.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.ArrayList;
+
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
     
-    private final List<User> users = new ArrayList<>();
-    private final AtomicLong idCounter = new AtomicLong(1);
-
+    @Autowired
+    private UserRepository userRepository;
     
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        User newUser = User.builder()
-            .id(idCounter.getAndIncrement())
-            .name(user.getName())
-            .email(user.getEmail())
-            .credit_card(user.getCredit_card())
-            .build();
-        users.add(newUser);
-        return newUser;
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        try {
+            User savedUser = userRepository.save(user);
+            return ResponseEntity.ok(savedUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
-
     
     @GetMapping
     public List<User> getAllUsers() {
-        return users;
+        return userRepository.findAll();
     }
-
     
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id) {
-        return users.stream()
-            .filter(user -> user.getId().equals(id))
-            .findFirst()
-            .orElse(null);
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        Optional<User> user = userRepository.findById(id);
+        return user.map(ResponseEntity::ok)
+                  .orElse(ResponseEntity.notFound().build());
     }
-
     
     @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable Long id) {
-        users.removeIf(user -> user.getId().equals(id));
-        return "User deleted";
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            return ResponseEntity.ok("Пользователь успешно удален");
+        }
+        return ResponseEntity.notFound().build();
     }
-
     
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User user) {
-        deleteUser(id);
-        User updatedUser = User.builder()
-            .id(id)
-            .name(user.getName())
-            .email(user.getEmail())
-            .credit_card(user.getCredit_card())
-            .build();
-        users.add(updatedUser);
-        return updatedUser;
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+        return userRepository.findById(id)
+            .map(existingUser -> {
+                existingUser.setName(userDetails.getName());
+                existingUser.setEmail(userDetails.getEmail());
+                existingUser.setCreditCard(userDetails.getCreditCard());
+                User updatedUser = userRepository.save(existingUser);
+                return ResponseEntity.ok(updatedUser);
+            })
+            .orElse(ResponseEntity.notFound().build());
     }
 }

@@ -1,15 +1,27 @@
 package com.example.demo_2.entities;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "users")
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @ToString
 public class User {
-    private final Long id;
-    private final String name;
-    private final String email;
-    private final String credit_card;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false)
+    private String name;
+    
+    @Column(nullable = false, unique = true)
+    private String email;
+    
+    @Column(name = "credit_card")
+    private String creditCard;
 }
