@@ -1,19 +1,140 @@
 {
 	"info": {
 		"_postman_id": "ed23cead-0049-4b12-83d0-3e604d41402b",
-		"name": "Ride Service API",
+		"name": "Ride Service API with Security",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "13859013"
 	},
 	"item": [
 		{
-			"name": "User API",
+			"name": "Аутентификация",
 			"item": [
 				{
-					"name": "GET-All Users",
+					"name": "Получить CSRF токен",
 					"request": {
 						"method": "GET",
 						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/csrf-token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"csrf-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Зарегистрировать пользователя (публично)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"User123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Требования к паролю",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/password-requirements",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"password-requirements"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Административные",
+			"item": [
+				{
+					"name": "Зарегистрировать администратора",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin2@example.com\",\n    \"password\": \"Admin123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register-admin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register-admin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получить всех пользователей",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/users",
 							"host": [
@@ -27,57 +148,53 @@
 					"response": []
 				},
 				{
-					"name": "GET-User by ID",
+					"name": "Получить пользователя по ID",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
-							"raw": "{{baseUrl}}/users/1",
+							"raw": "{{baseUrl}}/users/{{userId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"users",
-								"1"
+								"{{userId}}"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "POST-Create User",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Имя\",\r\n    \"email\": \"Почта\",\r\n    \"creditCard\": \"Номер карты\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/users",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"users"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "PUT-Update User",
+					"name": "Изменить роль пользователя",
 					"request": {
 						"method": "PUT",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Новое имя\",\r\n    \"email\": \"Новая почта\",\r\n    \"creditCard\": \"Новый номер карты\"\r\n}",
+							"raw": "{\n    \"role\": \"ADMIN\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -85,46 +202,60 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/users/1",
+							"raw": "{{baseUrl}}/users/{{userId}}/role",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"users",
-								"1"
+								"{{userId}}",
+								"role"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "DELETE-User",
+					"name": "Удалить пользователя",
 					"request": {
 						"method": "DELETE",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
-							"raw": "{{baseUrl}}/users/1",
+							"raw": "{{baseUrl}}/users/{{userId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"users",
-								"1"
+								"{{userId}}"
 							]
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "Car API",
-			"item": [
+				},
 				{
-					"name": "GET-All Cars",
+					"name": "Получить все автомобили",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/cars",
 							"host": [
@@ -138,10 +269,19 @@
 					"response": []
 				},
 				{
-					"name": "GET-Car by ID",
+					"name": "Получить автомобиль по ID",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/cars/1",
 							"host": [
@@ -156,13 +296,26 @@
 					"response": []
 				},
 				{
-					"name": "POST-Create Car",
+					"name": "Создать автомобиль",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"model\": \"Модель\",\r\n    \"number\": \"Номер\"\r\n}",
+							"raw": "{\n    \"model\": \"Toyota Camry\",\n    \"number\": \"A123BC\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -182,13 +335,26 @@
 					"response": []
 				},
 				{
-					"name": "PUT-Update Car",
+					"name": "Обновить автомобиль",
 					"request": {
 						"method": "PUT",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"model\": \"Новая модель\",\r\n    \"number\": \"Новый номер\"\r\n}",
+							"raw": "{\n    \"model\": \"Honda Accord\",\n    \"number\": \"B456DE\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -209,10 +375,19 @@
 					"response": []
 				},
 				{
-					"name": "DELETE-Car",
+					"name": "Удалить автомобиль",
 					"request": {
 						"method": "DELETE",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/cars/1",
 							"host": [
@@ -225,17 +400,21 @@
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "Ride API",
-			"item": [
+				},
 				{
-					"name": "GET-All Rides",
+					"name": "Получить все поездки",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/rides",
 							"host": [
@@ -249,10 +428,19 @@
 					"response": []
 				},
 				{
-					"name": "GET-Ride by ID",
+					"name": "Получить поездку по ID",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/rides/1",
 							"host": [
@@ -265,17 +453,21 @@
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "Payment API",
-			"item": [
+				},
 				{
-					"name": "GET-All Payments",
+					"name": "Получить все платежи",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{userAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/payments",
 							"host": [
@@ -287,12 +479,26 @@
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "Пользовательские",
+			"item": [
 				{
-					"name": "GET-Payment by ID",
+					"name": "Получить платеж по ID",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{userAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/payments/1",
 							"host": [
@@ -305,17 +511,21 @@
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "Operations API",
-			"item": [
+				},
 				{
-					"name": "GET-Available Cars",
+					"name": "Получить доступные автомобили",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{userAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/api/operations/cars/available",
 							"host": [
@@ -332,10 +542,19 @@
 					"response": []
 				},
 				{
-					"name": "GET-Calculate Cost",
+					"name": "Рассчитать стоимость поездки",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{userAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/api/operations/calculate-cost?tarif=5.0&estimatedTime=30&estimatedKilometers=15.5",
 							"host": [
@@ -365,13 +584,26 @@
 					"response": []
 				},
 				{
-					"name": "POST-Start Ride",
+					"name": "Начать поездку",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{userAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"userId\": 1,\r\n    \"carId\": 1,\r\n    \"tarif\": 5.0\r\n}",
+							"raw": "{\n    \"userId\": 1,\n    \"carId\": 1,\n    \"tarif\": 5.0\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -394,13 +626,26 @@
 					"response": []
 				},
 				{
-					"name": "POST-Complete Ride",
+					"name": "Завершить поездку",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{userAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"rideId\": 1,\r\n    \"finalKilometers\": 22.5\r\n}",
+							"raw": "{\n    \"rideId\": 1,\n    \"finalKilometers\": 22.5\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -423,13 +668,26 @@
 					"response": []
 				},
 				{
-					"name": "POST-Cancel Ride",
+					"name": "Отменить поездку",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{userAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"rideId\": 1\r\n}",
+							"raw": "{\n    \"rideId\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -452,10 +710,19 @@
 					"response": []
 				},
 				{
-					"name": "GET-User Ride Archive",
+					"name": "Получить архив поездок пользователя",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{userAuth}}"
+							},
+							{
+								"key": "X-XSRF-TOKEN",
+								"value": "{{csrfToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/api/operations/rides/user/1/archive",
 							"host": [
@@ -480,6 +747,72 @@
 		{
 			"key": "baseUrl",
 			"value": "http://localhost:8080"
+		},
+		{
+			"key": "adminAuth",
+			"value": "Basic YWRtaW5AZXhhbXBsZS5jb206QWRtaW4xMjMh"
+		},
+		{
+			"key": "userAuth",
+			"value": "Basic dXNlckBleGFtcGxlLmNvbTpVc2VyMTIzIQ=="
+		},
+		{
+			"key": "csrfToken",
+			"value": ""
+		},
+		{
+			"key": "userId",
+			"value": "1"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Automatically add CSRF token to ALL authenticated requests",
+					"const csrfToken = pm.collectionVariables.get(\"csrfToken\");",
+					"if (csrfToken) {",
+					"    // Добавляем CSRF токен ко всем запросам, кроме публичных",
+					"    const publicEndpoints = [",
+					"        \"/auth/register\",",
+					"        \"/auth/password-requirements\", ",
+					"        \"/csrf-token\"",
+					"    ];",
+					"    ",
+					"    const currentUrl = pm.request.url.toString();",
+					"    const isPublicEndpoint = publicEndpoints.some(endpoint => ",
+					"        currentUrl.includes(endpoint)",
+					"    );",
+					"    ",
+					"    if (!isPublicEndpoint) {",
+					"        pm.request.headers.add({",
+					"            key: \"X-XSRF-TOKEN\",",
+					"            value: csrfToken",
+					"        });",
+					"    }",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"if (pm.response.code === 200) {",
+					"    try {",
+					"        const responseData = pm.response.json();",
+					"        if (responseData.token) {",
+					"            pm.collectionVariables.set(\"csrfToken\", responseData.token);",
+					"            console.log(\"CSRF Token saved: \" + responseData.token);",
+					"        }",
+					"    } catch (e) {",
+					"    }",
+					"}"
+				]
+			}
 		}
 	]
 }
