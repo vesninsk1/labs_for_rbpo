@@ -25,4 +25,9 @@ public class Car {
     @Column(nullable = false)
     @Builder.Default
     private Boolean available = true;
+    public Car(String model, String number) {
+        this.model = model;
+        this.number = number;
+        this.available = true;
+    }
 }

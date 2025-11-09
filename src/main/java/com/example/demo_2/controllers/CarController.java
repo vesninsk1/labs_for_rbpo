@@ -2,8 +2,11 @@ package com.example.demo_2.controllers;
 
 import com.example.demo_2.entities.Car;
 import com.example.demo_2.repositories.CarRepository;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,12 +14,14 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/cars")
+@RequiredArgsConstructor
 public class CarController {
     
     @Autowired
     private CarRepository carRepository;
     
     @PostMapping
+    @PreAuthorize("hasAuthority('modify')")
     public ResponseEntity<Car> createCar(@RequestBody Car car) {
         try {
             Car savedCar = carRepository.save(car);
@@ -27,11 +32,13 @@ public class CarController {
     }
     
     @GetMapping
+    @PreAuthorize("hasAuthority('modify')")
     public List<Car> getAllCars() {
         return carRepository.findAll();
     }
     
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('modify')")
     public ResponseEntity<Car> getCarById(@PathVariable Long id) {
         Optional<Car> car = carRepository.findById(id);
         return car.map(ResponseEntity::ok)
@@ -39,6 +46,7 @@ public class CarController {
     }
     
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('modify')")
     public ResponseEntity<String> deleteCar(@PathVariable Long id) {
         if (carRepository.existsById(id)) {
             carRepository.deleteById(id);
@@ -48,6 +56,7 @@ public class CarController {
     }
     
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('modify')")
     public ResponseEntity<Car> updateCar(@PathVariable Long id, @RequestBody Car carDetails) {
         return carRepository.findById(id)
             .map(existingCar -> {
@@ -59,3 +68,4 @@ public class CarController {
             .orElse(ResponseEntity.notFound().build());
     }
 }
+

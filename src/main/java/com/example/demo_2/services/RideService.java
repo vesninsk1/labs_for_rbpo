@@ -26,6 +26,7 @@ public class RideService {
     
     @Autowired
     private PaymentRepository paymentRepository;
+    
     public List<Car> findAvailableCars() {
         return carRepository.findByAvailableTrue();
     }
@@ -54,7 +55,6 @@ public class RideService {
         
         Ride savedRide = rideRepository.save(newRide);
         
-
         car.setAvailable(false);
         carRepository.save(car);
         
@@ -63,7 +63,6 @@ public class RideService {
     
     @Transactional
     public Payment completeRide(Long rideId, Double finalKilometers) {
-        
         Optional<Ride> rideOpt = rideRepository.findById(rideId);
         if (rideOpt.isEmpty()) {
             throw new RuntimeException("Поездка не найдена");
@@ -123,7 +122,11 @@ public class RideService {
         
         return updatedRide;
     }
+    
     public Double calculateEstimatedCost(Double tarif, Integer estimatedTime, Double estimatedKilometers) {
+        if (tarif == null || estimatedTime == null || estimatedKilometers == null) {
+            throw new IllegalArgumentException("Все параметры должны быть указаны");
+        }
         return (estimatedTime * tarif) + (estimatedKilometers * 10.0);
     }
     
@@ -134,7 +137,7 @@ public class RideService {
             .map(ride -> {
                 Double amount = paymentRepository.findByRideId(ride.getId())
                     .map(Payment::getAmount)
-                    .orElse(0.0); 
+                    .orElse(0.0);
                 return new RideArchiveDTO(
                     ride.getId(),
                     ride.getCarId(),
@@ -143,13 +146,12 @@ public class RideService {
                     ride.getTotalTime(),
                     ride.getKilometrs(),
                     ride.getStatus(),
-                    amount 
+                    amount
                 );
             })
             .collect(Collectors.toList());
     }
     
-
     public static class RideArchiveDTO {
         private Long rideId;
         private Long carId;
@@ -173,7 +175,6 @@ public class RideService {
             this.amount = amount;
         }
         
-
         public Long getRideId() { return rideId; }
         public Long getCarId() { return carId; }
         public LocalDateTime getStartTime() { return startTime; }

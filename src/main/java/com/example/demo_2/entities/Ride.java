@@ -25,13 +25,15 @@ public class Ride {
     private Long carId;
     
     @Column(name = "total_time") 
-    private Integer totalTime;
+    @Builder.Default
+    private Integer totalTime = 0;
     
     @Column(nullable = false)
     private Double tarif;
     
     @Column(nullable = false)
-    private Double kilometrs;
+    @Builder.Default
+    private Double kilometrs = 0.0;
     
     @Column(nullable = false)
     @Builder.Default
@@ -43,6 +45,7 @@ public class Ride {
     
     @Column(name = "end_time")
     private LocalDateTime endTime;
+    
     public Integer calculateTotalTime() {
         if (startTime != null && endTime != null) {
             Duration duration = Duration.between(startTime, endTime);
@@ -50,6 +53,7 @@ public class Ride {
         }
         return 0;
     }
+    
     public Double calculateAmount() {
         Integer time = (totalTime != null) ? totalTime : calculateTotalTime();
         return (time * tarif) + (kilometrs * 10.0);
