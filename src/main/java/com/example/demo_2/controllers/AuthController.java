@@ -1,4 +1,3 @@
-// AuthController.java
 package com.example.demo_2.controllers;
 
 import com.example.demo_2.entities.User;
