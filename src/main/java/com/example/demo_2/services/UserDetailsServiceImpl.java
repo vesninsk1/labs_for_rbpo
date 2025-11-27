@@ -27,6 +27,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         System.out.println("Authorities: " + user.getAuthorities());
         System.out.println("===================================");
         
-        return user; // Возвращаем саму сущность User
+        return user; 
+    }
+
+    @Transactional(readOnly = true)
+    public UserDetails loadUserById(Long id) throws UsernameNotFoundException {
+        User user = repository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+        
+        return user;
     }
 }
