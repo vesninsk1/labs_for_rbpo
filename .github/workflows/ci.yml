@@ -29,19 +29,9 @@ jobs:
         distribution: 'temurin'
         cache: maven
         
-    - name: Decode and save keystore
+    - name: Decode keystore
       run: |
         echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > src/main/resources/FirdKey.jks
-        
-    - name: Verify keystore
-      run: |
-        if [ -f "src/main/resources/FirdKey.jks" ]; then
-          echo "Keystore file created successfully"
-          ls -la src/main/resources/
-        else
-          echo "Keystore file not found"
-          exit 1
-        fi
         
     - name: Build with Maven
       run: mvn clean compile
