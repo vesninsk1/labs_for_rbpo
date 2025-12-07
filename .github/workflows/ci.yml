@@ -17,8 +17,8 @@ jobs:
     
     - name: Install Keystore
       run: |
-        mkdir -p src/main/resources/keystore
-        echo "${{ secrets.SERVER_KEYSTORE_BASE64 }}" | base64 --decode > src/main/resources/keystore/server.jks
+        mkdir -p src/main/resources
+        echo "${{ secrets.SERVER_KEYSTORE_BASE64 }}" | base64 --decode > src/main/resources/FirdKey.jks
     
     - name: Build
       env:
