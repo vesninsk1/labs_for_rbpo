@@ -15,23 +15,20 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    - name: Install Keystore
+    - name: Build and Test
+      env:
+        DB_URL: ${{ secrets.DB_URL }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+        JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+        SERVER_KEYSTORE_PASSWORD: ${{ secrets.SERVER_KEYSTORE_PASSWORD }}
+        KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
       run: |
         mkdir -p src/main/resources
         echo "${{ secrets.SERVER_KEYSTORE_BASE64 }}" | base64 --decode > src/main/resources/FirdKey.jks
-    
-    - name: Build
-      env:
-        SERVER_KEYSTORE_PASSWORD: ${{ secrets.SERVER_KEYSTORE_PASSWORD }}
-      run: mvn clean compile
-    
-    - name: Run Tests
-      env:
-        SERVER_KEYSTORE_PASSWORD: ${{ secrets.SERVER_KEYSTORE_PASSWORD }}
-      run: mvn test
-    
-    - name: Package
-      run: mvn package -DskipTests
+        mvn clean test
+        mvn package -DskipTests
     
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
