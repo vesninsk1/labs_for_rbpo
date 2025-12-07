@@ -1,0 +1,40 @@
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Install Keystore
+      run: |
+        mkdir -p src/main/resources/keystore
+        echo "${{ secrets.SERVER_KEYSTORE_BASE64 }}" | base64 --decode > src/main/resources/keystore/server.jks
+    
+    - name: Build
+      env:
+        SERVER_KEYSTORE_PASSWORD: ${{ secrets.SERVER_KEYSTORE_PASSWORD }}
+      run: mvn clean compile
+    
+    - name: Run Tests
+      env:
+        SERVER_KEYSTORE_PASSWORD: ${{ secrets.SERVER_KEYSTORE_PASSWORD }}
+      run: mvn test
+    
+    - name: Package
+      run: mvn package -DskipTests
+    
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-jar
+        path: target/*.jar
