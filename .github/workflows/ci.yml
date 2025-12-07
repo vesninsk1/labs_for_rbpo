@@ -15,19 +15,70 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
+    - name: Create test configuration
+      run: |
+        mkdir -p src/test/resources
+        cat > src/test/resources/application.properties << 'EOF'
+        # Для тестов - ОТКЛЮЧАЕМ SSL
+        server.ssl.enabled=false
+        server.port=8080
+        
+        # База данных из переменных окружения
+        spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/car_rental_test}
+        spring.datasource.username=${DB_USERNAME:postgres}
+        spring.datasource.password=${DB_PASSWORD:postgres}
+        
+        # JPA для тестов - очищаем базу
+        spring.jpa.hibernate.ddl-auto=create-drop
+        spring.jpa.show-sql=false
+        
+        # JWT секреты для тестов
+        jwt.access.secret=test-access-secret-key-for-testing-only-32-chars
+        jwt.refresh.secret=test-refresh-secret-key-for-testing-only-32-chars
+        jwt.access.expiration=3600000
+        jwt.refresh.expiration=2592000000
+        
+        # Отключаем ненужное для тестов
+        spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+        EOF
+    
     - name: Build and Test
       env:
+        # База данных - нужны реальные секреты
         DB_URL: ${{ secrets.DB_URL }}
         DB_USERNAME: ${{ secrets.DB_USERNAME }}
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
-        JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
-        SERVER_KEYSTORE_PASSWORD: ${{ secrets.SERVER_KEYSTORE_PASSWORD }}
-        KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+        # JWT - тестовые значения
+        JWT_ACCESS_SECRET: "test-access-secret-key-for-testing-only-32-chars"
+        JWT_REFRESH_SECRET: "test-refresh-secret-key-for-testing-only-32-chars"
+        # Keystore пароль - тестовый
+        SERVER_KEYSTORE_PASSWORD: "testpassword"
+        KEYSTORE_ALIAS: "test"
       run: |
+        # Генерируем тестовый keystore
         mkdir -p src/main/resources
-        echo "${{ secrets.SERVER_KEYSTORE_BASE64 }}" | base64 --decode > src/main/resources/FirdKey.jks
+        keytool -genkeypair \
+          -alias test \
+          -keyalg RSA \
+          -keysize 2048 \
+          -storetype PKCS12 \
+          -keystore src/main/resources/FirdKey.jks \
+          -storepass testpassword \
+          -validity 365 \
+          -dname "CN=test, OU=test, O=test, L=test, ST=test, C=US" \
+          -noprompt
+        
+        # Запускаем тесты
         mvn clean test
+        
+        # Собираем JAR (с реальными секретами)
+        DB_URL=${{ secrets.DB_URL }} \
+        DB_USERNAME=${{ secrets.DB_USERNAME }} \
+        DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+        JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }} \
+        JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }} \
+        SERVER_KEYSTORE_PASSWORD=${{ secrets.SERVER_KEYSTORE_PASSWORD }} \
+        KEYSTORE_ALIAS=${{ secrets.KEYSTORE_ALIAS }} \
         mvn package -DskipTests
     
     - name: Upload Artifact
